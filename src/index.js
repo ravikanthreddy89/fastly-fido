@@ -9,6 +9,7 @@ import { includeBytes } from "fastly:experimental";
 // Load a static file as a Uint8Array at compile time.
 // File path is relative to root of project, not to this file
 const welcomePage = includeBytes("./src/welcome-to-compute.html");
+const welcomePage2 = includeBytes("./src/welcome-to-compute2.html");
 
 // The entry point for your application.
 //
@@ -21,6 +22,7 @@ addEventListener("fetch", (event) => event.respondWith(handleRequest(event)));
 
 async function handleRequest(event) {
   // Log service version
+  const FASTLY_SERVICE_VERSION = env('FASTLY_SERVICE_VERSION') || 'local';
   console.log("FASTLY_SERVICE_VERSION:", env('FASTLY_SERVICE_VERSION') || 'local');
   
   // Get the client request.
@@ -69,24 +71,33 @@ async function handleRequest(event) {
     // logger.log("Hello from the edge!");
 
     // Send a default synthetic response.
-    return new Response(welcomePage, {
+    const page = url.hostname.includes("fidotesting2") ? welcomePage2 : welcomePage;
+    return new Response(page, {
       status: 200,
       headers: new Headers({ "Content-Type": "text/html; charset=utf-8" }),
     });
   }
 
   if(url.pathname.includes("fido2")) {
-    //log the url
-    //log with dots
-    console.log("url:", url.pathname);
-    // route to fido1 backend
+
+    let backend = "fidobackend-1";
     let fidoURL = new URL("https://fido-backend.fly.dev"+url.pathname);
+    let rp_id = "fidotesting.edgecompute.app";
+    // if hostname contains fidotesting2 route to backend fidobackend-2
+    if(url.hostname.includes("fidotesting2")) {
+      backend = "fidobackend-2";
+      fidoURL = new URL("https://fido-backend2.fly.dev"+url.pathname);
+      rp_id = "fidotesting2.edgecompute.app";
+    }
+    console.log("url:", url.pathname);
+    console.log("hostname:", url.hostname);
+    console.log("rp_id:", rp_id);
     let backend_req = new Request(fidoURL, req);
-    backend_req.headers.set("rp_id", url.hostname);
-    let fido1_resp = await fetch(backend_req, {
-      backend: "fidobackend-1"
+    backend_req.headers.set("rp_id", rp_id);
+    const fido_resp = await fetch(backend_req, {
+      backend
     });
-    return fido1_resp;
+    return fido_resp;
   }
   else {
     console.log("url:", url.pathname);
