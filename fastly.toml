@@ -1,0 +1,41 @@
+# This file describes a Fastly Compute package. To learn more visit:
+# https://www.fastly.com/documentation/reference/compute/fastly-toml
+
+authors = [""]
+cloned_from = "https://github.com/fastly/compute-starter-kit-javascript-default"
+description = ""
+language = "javascript"
+manifest_version = 3
+name = "fastly-fido"
+service_id = "e3CJYxJgDTU7wJksmJyV07"
+
+[scripts]
+  build = "npm run build"
+  post_init = "npm install"
+
+[backend.fidobackend-1]
+address = "https://fido-backend.fly.dev"
+host_override = "https://fido-backend.fly.dev"
+use_ssl = true
+port = 443
+
+[backend.fidobackend-2]
+address = "https://fido-backend2.fly.dev"
+host_override = "https://fido-backend2.fly.dev"
+use_ssl = true
+port = 443
+
+
+[setup.backends]
+  # Here is where you define your backends
+  [setup.backends.fidobackend-1]
+  address = "https://fido-backend.fly.dev"
+  host_override = "https://fido-backend2.fly.dev"
+  use_ssl = true
+  port = 443
+
+  [setup.backends.fidobackend-2]
+  address = "https://fido-backend2.fly.dev"
+  host_override = "https://fido-backend2.fly.dev"
+  use_ssl = false
+  port = 80
